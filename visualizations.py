@@ -77,7 +77,7 @@ def save_file_with_paths(query_path, preds_paths, positives_paths, output_path, 
     if use_labels:
         file_content.append("Positives paths:")
         file_content.append("\n".join(positives_paths) + "\n")
-    with open(output_path, "w") as file:
+    with open(output_path, "a") as file:
         _ = file.write("\n".join(file_content))
 
 

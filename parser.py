@@ -43,7 +43,10 @@ def parse_arguments():
                         "smallest edge of all images to this value, while keeping aspect ratio")
     parser.add_argument("--save_descriptors", action="store_true",
                         help="set to True if you want to save the descriptors extracted by the model")
-    parser.add_argument("--descriptors_output_dir", type=str, default=None,
+    parser.add_argument("--save_pairsfile", action="store_true",
+                        help="set to True to save a file containing the paths of the retrieved images for"
+                        "all queries. The number of candidates is always max(--recall_values).")
+    parser.add_argument("--output_dir", type=str, default=None,
                         help="output directory for descriptors files and pairsfiles. Defaults to --log_dir.")
     args = parser.parse_args()
     

@@ -19,6 +19,7 @@ from test_dataset import TestDataset
 args = parser.parse_arguments()
 start_time = datetime.now()
 log_dir = Path("logs") / args.log_dir / start_time.strftime('%Y-%m-%d_%H-%M-%S')
+output_dir = log_dir if not args.output_dir else Path(args.output_dir)
 commons.setup_logging(log_dir, stdout="info")
 logging.info(" ".join(sys.argv))
 logging.info(f"Arguments: {args}")
@@ -58,10 +59,9 @@ queries_descriptors = all_descriptors[test_ds.num_database:]
 database_descriptors = all_descriptors[:test_ds.num_database]
 
 if args.save_descriptors:
-    args.descriptors_output_dir = log_dir if not args.descriptors_output_dir else Path(args.descriptors_output_dir)
-    logging.info(f"Saving the descriptors in {args.descriptors_output_dir}")
-    np.save(args.descriptors_output_dir / "queries_descriptors.npy", queries_descriptors)
-    np.save(args.descriptors_output_dir / "database_descriptors.npy", database_descriptors)
+    logging.info(f"Saving the descriptors in {output_dir}")
+    np.save(output_dir / "queries_descriptors.npy", queries_descriptors)
+    np.save(output_dir / "database_descriptors.npy", database_descriptors)
 
 # Use a kNN to find predictions
 faiss_index = faiss.IndexFlatL2(args.descriptors_dimension)
@@ -92,4 +92,21 @@ if args.num_preds_to_save != 0:
     # For each query save num_preds_to_save predictions
     visualizations.save_preds(predictions[:, :args.num_preds_to_save], test_ds,
                               log_dir, args.save_only_wrong_preds, args.use_labels)
+
+if args.save_pairsfile:
+    logging.info(f"Saving the pairsfile in {output_dir}")
+    for query_index, preds in enumerate(tqdm(predictions, desc=f"Saving preds in {output_dir}")):
+        query_path = test_ds.queries_paths[query_index]
+        list_of_images_paths = [query_path]
+        for pred_index, pred in enumerate(preds):
+            pred_path = test_ds.database_paths[pred]
+            list_of_images_paths.append(pred_path)
+        list_of_images_paths.append("\n") # This adds a blank line between the last candidate and the next query
+        visualizations.save_file_with_paths(
+            query_path=list_of_images_paths[0],
+            preds_paths=list_of_images_paths[1:],
+            positives_paths=None,
+            output_path=output_dir / "pairsfile.txt",
+            use_labels=False
+        )
 
